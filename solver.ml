@@ -88,6 +88,8 @@ module Make (Fact : FACT) (Graph : DFA_GRAPH with type fact := Fact.t) =
   struct
 
     let solve (g:Graph.t) : Graph.t =
-      failwith "TODO HW6: Solver.solve unimplemented"
+      let w = Graph.nodes g in
+      failwith "gitter"
+
   end
 
