@@ -87,24 +87,33 @@ module type FACT =
 module Make (Fact : FACT) (Graph : DFA_GRAPH with type fact := Fact.t) =
   struct
 
-
-    let solve (g:Graph.t) : Graph.t =
-
-      let rec repeat_until nodes_to_look_at =
+      let rec repeat_until cur_graph nodes_to_look_at =
         if Graph.NodeS.is_empty nodes_to_look_at then
-          failwith "finished"
+          cur_graph
         else
           let n = Graph.NodeS.choose nodes_to_look_at in
+          let popped_nodes = Graph.NodeS.remove n nodes_to_look_at in
           (* maybe remove it form set again *)
-          let old_out = Graph.out g n in
-          let in_list = (Graph.NodeS.elements (Graph.preds g n)) in
-          let in_combine = Fact.combine (List.map (Graph.out g) in_list) in
+          let old_out = Graph.out cur_graph n in
+          let in_list = (Graph.NodeS.elements (Graph.preds cur_graph n)) in
+          let in_combine = Fact.combine (List.map (Graph.out cur_graph) in_list) in
+          let new_out = Graph.flow cur_graph n in_combine in
+          let updated_graph = Graph.add_fact n new_out cur_graph in
+          let updated_nodes = 
+          if Fact.compare old_out new_out = 0 then
+            let sucuks = Graph.succs updated_graph n in
+            List.fold_right (Graph.NodeS.add) (Graph.NodeS.elements sucuks) popped_nodes 
+          else
+            popped_nodes
+          in
 
-          failwith "recurse"
-      in  
+          repeat_until updated_graph updated_nodes
+        
+
+      let solve (g:Graph.t) : Graph.t =
 
       let w = Graph.nodes g in
-        repeat_until w
+        repeat_until g w
 
   end
 
