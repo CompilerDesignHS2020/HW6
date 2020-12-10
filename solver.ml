@@ -113,7 +113,9 @@ module Make (Fact : FACT) (Graph : DFA_GRAPH with type fact := Fact.t) =
       let solve (g:Graph.t) : Graph.t =
 
       let w = Graph.nodes g in
-        repeat_until g w
+      let result = repeat_until g w in
+      print_endline @@ Graph.to_string result;
+      result
 
   end
 

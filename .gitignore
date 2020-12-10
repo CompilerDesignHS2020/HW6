@@ -2,3 +2,5 @@
 main.native
 _build
 a.out
+output
+*.temp
