@@ -87,9 +87,24 @@ module type FACT =
 module Make (Fact : FACT) (Graph : DFA_GRAPH with type fact := Fact.t) =
   struct
 
+
     let solve (g:Graph.t) : Graph.t =
+
+      let rec repeat_until nodes_to_look_at =
+        if Graph.NodeS.is_empty nodes_to_look_at then
+          failwith "finished"
+        else
+          let n = Graph.NodeS.choose nodes_to_look_at in
+          (* maybe remove it form set again *)
+          let old_out = Graph.out g n in
+          let in_list = (Graph.NodeS.elements (Graph.preds g n)) in
+          let in_combine = Fact.combine (List.map (Graph.out g) in_list) in
+
+          failwith "recurse"
+      in  
+
       let w = Graph.nodes g in
-      failwith "gitter"
+        repeat_until w
 
   end
 
