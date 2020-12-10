@@ -100,7 +100,7 @@ module Make (Fact : FACT) (Graph : DFA_GRAPH with type fact := Fact.t) =
           let new_out = Graph.flow cur_graph n in_combine in
           let updated_graph = Graph.add_fact n new_out cur_graph in
           let updated_nodes = 
-          if Fact.compare old_out new_out = 0 then
+          if Fact.compare old_out new_out != 0 then
             let sucuks = Graph.succs updated_graph n in
             List.fold_right (Graph.NodeS.add) (Graph.NodeS.elements sucuks) popped_nodes 
           else
@@ -114,7 +114,6 @@ module Make (Fact : FACT) (Graph : DFA_GRAPH with type fact := Fact.t) =
 
       let w = Graph.nodes g in
       let result = repeat_until g w in
-      print_endline @@ Graph.to_string result;
       result
 
   end
