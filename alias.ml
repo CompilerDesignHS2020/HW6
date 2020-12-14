@@ -38,13 +38,46 @@ let insn_flow ((u,i):uid * insn) (d:fact) : fact =
     | Alloca(t) -> UidM.add u SymPtr.Unique d
     | Load(t, op) -> 
       begin match t with
-        | Ptr(inner) -> UidM.add u SymPtr.MayAlias d
+        | Ptr(Ptr(inner)) -> UidM.add u SymPtr.MayAlias d
         | _ -> d
       end
-    | Bitcast(in_ty, op, out_ty) -> 
+    | Bitcast(in_ty, Ll.Id(in_uid), out_ty) -> 
+      let temp_uid_map = 
       begin match in_ty with
-        Ptr(inner_in_ty) -> 
-          
+        Ptr(inner_in_ty) -> UidM.update (fun _-> SymPtr.MayAlias) in_uid d 
+        | _ -> d
+      end in
+      begin match out_ty with
+        Ptr(inner_out_ty) -> UidM.add u SymPtr.MayAlias temp_uid_map
+        | _ -> temp_uid_map
+      end
+    
+    | Gep(in_ty, Ll.Id(in_uid), out_ty) -> 
+      let temp_uid_map =  UidM.update (fun _-> SymPtr.MayAlias) in_uid d in
+      UidM.add u SymPtr.MayAlias temp_uid_map
+
+    | Store(ty, Ll.Id(src_uid), dest_op) -> 
+      begin match ty with
+        | Ptr(inner) -> UidM.update (fun _-> SymPtr.MayAlias) src_uid d 
+        | _ -> d
+      end
+
+    | Call(ret_ty, fun_lbl, arg_list) -> 
+      let rec update_map rem_args act_map =
+        begin match rem_args with
+          | (act_ty, Ll.Id(act_uid))::tl -> 
+            begin match act_ty with
+              | Ptr(inner) -> update_map tl (UidM.update (fun _-> SymPtr.MayAlias) act_uid act_map)
+              | _ -> update_map tl act_map
+            end
+          | (act_ty, _)::tl ->  update_map tl act_map
+          | [] -> act_map
+        end
+      in
+      let temp_map = update_map arg_list d in 
+      begin match ret_ty with
+        | Ptr(inner) -> UidM.add u SymPtr.MayAlias temp_map
+        | _ -> temp_map
       end
 
     | _ -> d
