@@ -34,21 +34,23 @@ type fact = SymPtr.t UidM.t
 
  *)
 let insn_flow ((u,i):uid * insn) (d:fact) : fact =
+  
   match i with
-    | Alloca(t) -> UidM.add u SymPtr.Unique d
-    | Load(t, op) -> 
-      begin match t with
-        | Ptr(inner) -> UidM.add u SymPtr.MayAlias d
-        | _ -> d
-      end
-    | Bitcast(in_ty, op, out_ty) -> 
-      begin match in_ty with
-        Ptr(inner_in_ty) -> 
-          
-      end
-
+  | Alloca(t) -> UidM.add u SymPtr.Unique d
+  | Load(t, op) -> 
+    begin match t with
+    | Ptr(inner) -> UidM.add u SymPtr.MayAlias d
     | _ -> d
-
+  end
+  | Bitcast(in_ty, op, out_ty) -> 
+    begin match in_ty with
+    Ptr(inner_in_ty) -> 
+      
+    end
+    
+    | _ -> d
+    
+    
 
 (* The flow function across terminators is trivial: they never change alias info *)
 let terminator_flow t (d:fact) : fact = d
@@ -81,8 +83,18 @@ module Fact =
        It may be useful to define a helper function that knows how to take the
        join of two SymPtr.t facts.
     *)
+    
+    let merge_sym_ptr uid val_1 val_2 =
+      val_1;
+      failwith "unimplemented"
+    in
+
     let combine (ds:fact list) : fact =
-      failwith "Alias.Fact.combine not implemented"
+      let rec join_rem_facts =
+        match join_rem_facts with
+          | h1::h2::tl -> UidM.merge merge_sym_ptr h1 h2 
+        end
+      in
   end
 
 (* instantiate the general framework ---------------------------------------- *)
