@@ -61,7 +61,7 @@ let dce_block (lb:uid -> Liveness.Fact.t)
       | [] -> []
     end
   in 
-  {insns = block_loop b.insns; term = b.term}
+  {insns = List.rev (block_loop b.insns); term = b.term}
 
 
 
