@@ -126,8 +126,27 @@ module Fact =
 
     (* The constprop analysis should take the meet over predecessors to compute the
        flow into a node. You may find the UidM.merge function useful *)
+
+    let merge_const_types uid val1 val2 =
+      match val1, val2 with
+        | None, None -> None
+        | None, Some x -> Some x
+        | Some x, None -> Some x
+        | Some SymConst.Const(i1), Some SymConst.Const(i2) -> if i1 = i2 then Some (SymConst.Const(i1)) else Some SymConst.UndefConst
+        | Some UndefConst, Some _ -> Some SymConst.UndefConst
+        | Some _, Some UndefConst -> Some SymConst.UndefConst
+        | Some SymConst.NonConst, Some _ ->  Some SymConst.NonConst
+        | Some _, Some SymConst.NonConst ->  Some SymConst.NonConst
+
     let combine (ds:fact list) : fact = 
-      failwith "Constprop.Fact.combine unimplemented"
+      let rec join_rem_facts rem_facts=
+      begin match rem_facts with
+        | h::tl -> UidM.merge merge_const_types h (join_rem_facts tl)
+        | [] -> UidM.empty
+      end
+    in
+
+    join_rem_facts ds
   end
 
 (* instantiate the general framework ---------------------------------------- *)
