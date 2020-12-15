@@ -30,10 +30,10 @@ let dce_block (lb:uid -> Liveness.Fact.t)
       | (uid, insn)::tl -> 
         begin match insn with
           | Call(a,b,c) -> (block_loop tl)@[uid, Call(a,b,c)]
-          | Store(a,b,c) -> 
-            
-            (block_loop tl)@[uid, Store(a,b,c)]
-          | _ -> (block_loop tl)
+          | Store(ty,src,dest) -> (block_loop tl)@[uid, Store(ty,src,dest)]
+          | other_insn -> let liveness = lb uid in 
+            if  = live then 
+            (block_loop tl) (*keep if computed value is live*)
         end
       | [] -> []
     end
