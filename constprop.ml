@@ -37,12 +37,17 @@ type fact = SymConst.t UidM.t
    - Uid of all other instructions are NonConst-out
  *)
 let insn_flow (u,i:uid * insn) (d:fact) : fact =
+  
+  let calc_icmp_res (cond:cnd) (val1: int) (val2: int) : int64 =
+    1L
+  in
 
   let calc_binop_res binop val1 val2 =
-    
+    2L
   in
 
 
+  (* returns is_const, is_defined, const_value *)
   let calculate_op_value op =
     begin match op with
       | Null -> true, 0
@@ -50,8 +55,9 @@ let insn_flow (u,i:uid * insn) (d:fact) : fact =
       | Id(op1_uid) -> 
         let op1_const_ty = UidM.find op1_uid d in
         begin match op1_const_ty with
-          | Const i -> true, Int64.to_int i
-          | _ -> false, 0
+          | Const i -> true, true, Int64.to_int i
+          | NonConst -> false, true, 0
+          | UndefConst -> false, false, 0
         end
       | Gid(_) -> false, 0
     end
@@ -60,10 +66,22 @@ let insn_flow (u,i:uid * insn) (d:fact) : fact =
 
   match i with
   | Binop(bin,_, op1, op2) -> 
+    let op1_is_const, op1_is_defined, op1_value = calculate_op_value op1 in
+    let op2_is_const, op2_is_defined, op2_value = calculate_op_value op2 in
+    begin if (op1_is_const && op2_is_const) then
+      UidM.add u (SymConst.Const(calc_binop_res bin op1_value op2_value)) d
+    else
+      begin if op1_is_defined && op2_is_defined then
+        UidM.add u SymConst.NonConst d
+      else
+        UidM.add u SymConst.UndefConst d
+      end
+    end
+  | Icmp(cond, _, op1, op2) ->
     let op1_is_const, op1_value = calculate_op_value op1 in
     let op2_is_const, op2_value = calculate_op_value op2 in
     if (op1_is_const && op2_is_const) then
-      UidM.add u (SymConst.Const(calc_binop_res bin op1_value op2_value)) d
+      UidM.add u (SymConst.Const(calc_icmp_res cond op1_value op2_value)) d
     else
       UidM.add u SymConst.NonConst d
   | _ -> d
