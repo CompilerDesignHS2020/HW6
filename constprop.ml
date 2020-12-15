@@ -38,10 +38,19 @@ type fact = SymConst.t UidM.t
  *)
 let insn_flow (u,i:uid * insn) (d:fact) : fact =
 
-  let calc_binop_res binop val1 val2 =
-    
+  let calc_binop_res (binop:Ll.bop) (val1) (val2) =
+    begin match binop with
+      | Add -> Int64.of_int (val1 + val2)
+      | Sub -> Int64.of_int (val1 - val2)
+      | Mul -> Int64.of_int (val1 * val2)
+      | Shl -> Int64.of_int (val1 lsl val2)
+      | Lshr -> Int64.of_int (val1 lsr val2)
+      | Ashr -> Int64.of_int (val1 asr val2)
+      | And -> Int64.of_int (val1 land val2)
+      | Or -> Int64.of_int (val1 lor val2)
+      | Xor -> Int64.of_int (val1 lxor val2)
+    end
   in
-
 
   let calculate_op_value op =
     begin match op with
