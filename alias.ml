@@ -42,10 +42,10 @@ let insn_flow ((u,i):uid * insn) (d:fact) : fact =
         | Ptr(Ptr(inner)) -> UidM.add u SymPtr.MayAlias d
         | _ -> d
       end
-    | Bitcast(in_ty, Ll.Id(in_uid), out_ty) -> 
+    | Bitcast(in_ty, in_id, out_ty) -> 
       let temp_uid_map = 
-      begin match in_ty with
-        Ptr(inner_in_ty) -> UidM.update (fun _-> SymPtr.MayAlias) in_uid d 
+      begin match in_ty, in_id with
+        Ptr(inner_in_ty), Ll.Id(in_uid) -> UidM.update (fun _-> SymPtr.MayAlias) in_uid d 
         | _ -> d
       end in
       begin match out_ty with
@@ -53,8 +53,12 @@ let insn_flow ((u,i):uid * insn) (d:fact) : fact =
         | _ -> temp_uid_map
       end
     
-    | Gep(in_ty, Ll.Id(in_uid), out_ty) -> 
-      let temp_uid_map =  UidM.update (fun _-> SymPtr.MayAlias) in_uid d in
+    | Gep(in_ty, in_id, out_ty) -> 
+      let temp_uid_map =  
+      match in_id with 
+        | Ll.Id(in_uid) -> UidM.update (fun _-> SymPtr.MayAlias) in_uid d
+        | _ -> d
+      in
       UidM.add u SymPtr.MayAlias temp_uid_map
 
     | Store(ty, Ll.Id(src_uid), dest_op) -> 
@@ -120,16 +124,19 @@ module Fact =
     let merge_sym_ptr uid val_1 val_2 =
       begin match val_1, val_2 with
         | None, None -> None
-        | None, Some x -> x
-        | Some x, None -> x
+        | None, Some x -> Some x
+        | Some x, None -> Some x
         | Some SymPtr.UndefAlias, _ -> Some SymPtr.UndefAlias
-        | _  , Some SymPtr.UndefAlias -> Some SymPtr.UndefAlias
+        | _, Some SymPtr.UndefAlias -> Some SymPtr.UndefAlias
+        | Some SymPtr.MayAlias, _ -> Some SymPtr.MayAlias
+        | _, Some SymPtr.MayAlias -> Some SymPtr.MayAlias
+        | Some SymPtr.Unique, Some SymPtr.Unique -> Some SymPtr.Unique
       end
 
     let combine (ds:fact list) : fact =
 
       let rec join_rem_facts rem_facts=
-        match rem_facts with
+        begin match rem_facts with
           | h::tl -> UidM.merge merge_sym_ptr h (join_rem_facts tl)
           | [] -> UidM.empty
         end
