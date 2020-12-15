@@ -99,8 +99,9 @@ let insn_flow (u,i:uid * insn) (d:fact) : fact =
         UidM.add u SymConst.UndefConst d
       end
 
-    
-  | _ -> d
+  | Store(_,_,_) -> UidM.add u SymConst.UndefConst d
+  | Call(Void,_,_) -> UidM.add u SymConst.UndefConst d
+  | _ -> UidM.add u SymConst.NonConst d
 
 (* The flow function across terminators is trivial: they never change const info *)
 let terminator_flow (t:terminator) (d:fact) : fact = d
