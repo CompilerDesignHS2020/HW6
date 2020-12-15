@@ -30,10 +30,32 @@ let dce_block (lb:uid -> Liveness.Fact.t)
       | (uid, insn)::tl -> 
         begin match insn with
           | Call(a,b,c) -> (block_loop tl)@[uid, Call(a,b,c)]
-          | Store(ty,src,dest) -> (block_loop tl)@[uid, Store(ty,src,dest)]
-          | other_insn -> let liveness = lb uid in 
-            if  = live then 
-            (block_loop tl) (*keep if computed value is live*)
+          | Store(ty,src,dest) -> 
+            begin match dest with
+              Ll.Id(uid) -> 
+                (* check if dest_uid is live *)
+                let liveness = lb uid in 
+                let contains_uid = UidS.find_opt uid liveness in
+                begin match contains_uid with
+                  | None -> 
+                      (* check if aliased *)
+                      let aliasness = ab uid in
+                      let alias_state =  UidM.find uid aliasness in
+                      if alias_state = MayAlias then
+                        (block_loop tl)@[uid, Store(ty,src,dest)] (* keep instruction *)
+                      else
+                        block_loop tl
+                  | Some x -> (block_loop tl)@[uid, other_insn] (* keep instruction *)
+                end
+              _ -> (block_loop tl)@[uid, Store(ty,src,dest)] (* keep instruction *)
+            end
+
+          | other_insn -> 
+            let liveness = lb uid in 
+            let contains_uid = UidS.find_opt uid liveness in
+            match contains_uid with
+              | None -> (block_loop tl)
+              |  Some x -> (block_loop tl)@[uid, other_insn]
         end
       | [] -> []
     end
