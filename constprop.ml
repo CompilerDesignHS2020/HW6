@@ -39,7 +39,14 @@ type fact = SymConst.t UidM.t
 let insn_flow (u,i:uid * insn) (d:fact) : fact =
   
   let calc_icmp_res (cond:cnd) (val1: int) (val2: int) : int64 =
-    1L (* TODO *)
+    begin match cond with
+      | Eq -> Int64.of_int (Bool.to_int (val1 = val2))
+      | Ne -> Int64.of_int (Bool.to_int (val1 != val2))
+      | Sle -> Int64.of_int (Bool.to_int (val1 <= val2))
+      | Slt -> Int64.of_int (Bool.to_int (val1 < val2))
+      | Sge -> Int64.of_int (Bool.to_int (val1 >= val2))
+      | Sgt -> Int64.of_int (Bool.to_int (val1 > val2))
+    end
   in
 
   let calc_binop_res (binop:Ll.bop) (val1) (val2) =
