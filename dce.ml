@@ -24,7 +24,23 @@ open Datastructures
 let dce_block (lb:uid -> Liveness.Fact.t) 
               (ab:uid -> Alias.fact)
               (b:Ll.block) : Ll.block =
-  failwith "Dce.dce_block unimplemented"
+
+  let rec block_loop rem_insns =
+    begin match rem_insns with
+      | (uid, insn)::tl -> 
+        begin match insn with
+          | Call(a,b,c) -> (block_loop tl)@[uid, Call(a,b,c)]
+          | Store(a,b,c) -> 
+            
+            (block_loop tl)@[uid, Store(a,b,c)]
+          | _ -> (block_loop tl)
+        end
+      | [] -> []
+    end
+  in 
+  {insns = block_loop b.insns; term = b.term}
+
+
 
 let run (lg:Liveness.Graph.t) (ag:Alias.Graph.t) (cfg:Cfg.t) : Cfg.t =
 
