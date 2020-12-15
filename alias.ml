@@ -118,16 +118,25 @@ module Fact =
     *)
     
     let merge_sym_ptr uid val_1 val_2 =
-      val_1;
-      failwith "unimplemented"
-    in
+      begin match val_1, val_2 with
+        | None, None -> None
+        | None, Some x -> x
+        | Some x, None -> x
+        | Some SymPtr.UndefAlias, _ -> Some SymPtr.UndefAlias
+        | _  , Some SymPtr.UndefAlias -> Some SymPtr.UndefAlias
+      end
 
     let combine (ds:fact list) : fact =
-      let rec join_rem_facts =
-        match join_rem_facts with
-          | h1::h2::tl -> UidM.merge merge_sym_ptr h1 h2 
+
+      let rec join_rem_facts rem_facts=
+        match rem_facts with
+          | h::tl -> UidM.merge merge_sym_ptr h (join_rem_facts tl)
+          | [] -> UidM.empty
         end
       in
+
+      join_rem_facts ds
+
   end
 
 (* instantiate the general framework ---------------------------------------- *)
