@@ -25,7 +25,7 @@ let dce_block (lb:uid -> Liveness.Fact.t)
               (ab:uid -> Alias.fact)
               (b:Ll.block) : Ll.block =
 
-  let rec block_loop rem_insns =
+  let rec block_loop (rem_insns: (string * insn) list) : (string * insn) list =
     begin match rem_insns with
       | (uid, insn)::tl -> 
         begin match insn with
@@ -38,13 +38,13 @@ let dce_block (lb:uid -> Liveness.Fact.t)
                 let contains_uid = UidS.find_opt uid liveness in
                 begin match contains_uid with
                   | None -> 
-                      (* check if aliased *)
-                      let aliasness = ab uid in
-                      let alias_state =  UidM.find uid aliasness in
-                      if alias_state = MayAlias then
-                        (block_loop tl)@[uid, Store(ty,src,dest)] (* keep instruction *)
-                      else
-                        block_loop tl
+                    (* check if aliased *)
+                    let aliasness = ab uid in
+                    let alias_state =  UidM.find uid aliasness in
+                    if alias_state = MayAlias then
+                      (block_loop tl)@[uid, Store(ty,src,dest)] (* keep instruction *)
+                    else
+                      block_loop tl
                   | Some x -> (block_loop tl)@[uid, other_insn] (* keep instruction *)
                 end
               _ -> (block_loop tl)@[uid, Store(ty,src,dest)] (* keep instruction *)
