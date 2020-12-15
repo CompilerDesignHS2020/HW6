@@ -39,7 +39,7 @@ type fact = SymConst.t UidM.t
 let insn_flow (u,i:uid * insn) (d:fact) : fact =
   
   let calc_icmp_res (cond:cnd) (val1: int) (val2: int) : int64 =
-    1L
+    1L (* TODO *)
   in
 
   let calc_binop_res (binop:Ll.bop) (val1) (val2) =
