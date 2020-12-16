@@ -186,11 +186,23 @@ let analyze (g:Cfg.t) : Graph.t =
    functions.                                                                 *)
 let run (cg:Graph.t) (cfg:Cfg.t) : Cfg.t =
   let open SymConst in
+
+  let replace_consts cb cur_ins = 
+    failwith "NYI"
+  in
   
 
   let cp_block (l:Ll.lbl) (cfg:Cfg.t) : Cfg.t =
+
+    
     let b = Cfg.block cfg l in
     let cb = Graph.uid_out cg l in
+
+    let rec const_propagate_rem_insns rem_insns =
+      match rem_insns with
+      | h::tl -> [replace_consts cb h] @ (const_propagate_rem_insns tl)
+      | [] -> []
+    in
     failwith "Constprop.cp_block unimplemented"
   in
 
