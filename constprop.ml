@@ -238,8 +238,8 @@ let run (cg:Graph.t) (cfg:Cfg.t) : Cfg.t =
         end
         in
         uid, Ret(ty, new_op)
-      | a -> a
-
+      | uid, Cbr(op, lbl1, lbl2) -> uid, Cbr(const_conv_op cb op, lbl1, lbl2)
+      | other -> other
     end
   in
   
