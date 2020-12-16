@@ -260,8 +260,11 @@ let run (cg:Graph.t) (cfg:Cfg.t) : Cfg.t =
     let updated_term = replace_consts_term cb b.term in
 
     let new_block = {insns=updated_insns; term=updated_term} in
-    
 
+    let old_blocks = cfg.blocks in
+    let new_blocks = LblM.add l new_block (LblM.remove l old_blocks) in
+
+    {blocks=new_blocks; preds=cfg.preds; ret_ty= cfg.ret_ty; args=cfg.args }
 
   in
 
