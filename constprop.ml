@@ -143,11 +143,12 @@ module Fact =
         | None, None -> None
         | None, Some x -> Some x
         | Some x, None -> Some x
-        | Some SymConst.Const(i1), Some SymConst.Const(i2) -> if i1 = i2 then Some (SymConst.Const(i1)) else Some SymConst.UndefConst
+        | Some SymConst.Const(i1), Some SymConst.Const(i2) -> if i1 = i2 then Some (SymConst.Const(i1)) else failwith "const value differ"
         | Some UndefConst, Some x -> Some x
         | Some x, Some UndefConst -> Some x
-        | Some SymConst.NonConst, Some _ ->  Some SymConst.NonConst
-        | Some _, Some SymConst.NonConst ->  Some SymConst.NonConst
+        | Some SymConst.NonConst, Some SymConst.NonConst -> Some SymConst.NonConst
+        | Some SymConst.NonConst, Some _ -> failwith "NonConst and Const merge"
+        | Some _, Some SymConst.NonConst -> failwith "NonConst and Const merge"
 
     let combine (ds:fact list) : fact = 
       let rec join_rem_facts rem_facts=
