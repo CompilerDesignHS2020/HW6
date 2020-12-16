@@ -144,8 +144,8 @@ module Fact =
         | None, Some x -> Some x
         | Some x, None -> Some x
         | Some SymConst.Const(i1), Some SymConst.Const(i2) -> if i1 = i2 then Some (SymConst.Const(i1)) else Some SymConst.UndefConst
-        | Some UndefConst, Some _ -> Some SymConst.UndefConst
-        | Some _, Some UndefConst -> Some SymConst.UndefConst
+        | Some UndefConst, Some x -> Some x
+        | Some x, Some UndefConst -> Some x
         | Some SymConst.NonConst, Some _ ->  Some SymConst.NonConst
         | Some _, Some SymConst.NonConst ->  Some SymConst.NonConst
 
@@ -187,11 +187,11 @@ let analyze (g:Cfg.t) : Graph.t =
 let run (cg:Graph.t) (cfg:Cfg.t) : Cfg.t =
   let open SymConst in
 
-  let replace_consts cb cur_ins = 
+  let replace_consts cb cur_ins: Ll.uid * Ll.insn = 
     failwith "NYI"
   in
 
-  let replace_consts_term cb cur_ins = 
+  let replace_consts_term cb cur_ins: Ll.uid * Ll.terminator = 
     failwith "NYI"
   in
   
@@ -209,9 +209,10 @@ let run (cg:Graph.t) (cfg:Cfg.t) : Cfg.t =
     in
     
     let updated_insns = const_propagate_rem_insns b.insns in
-    let updated_term = replace_consts_term b.term in
+    let updated_term = replace_consts_term cb b.term in
 
-    {insns=updated_insns; term=updated_term}
+    let new_block = {insns=updated_insns; term=updated_term} in
+    failwith "gittre"
 
   in
 
