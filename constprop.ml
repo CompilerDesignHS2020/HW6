@@ -110,7 +110,7 @@ let insn_flow (u,i:uid * insn) (d:fact) : fact =
         UidM.add u SymConst.UndefConst d
       end
 
-  | Store(_,_,_) -> UidM.add u SymConst.UndefConst d
+  | Store(_,_,_) -> (*UidM.add u SymConst.UndefConst*) d
   | Call(Void,_,_) -> UidM.add u SymConst.UndefConst d
   | _ -> UidM.add u SymConst.NonConst d
 
