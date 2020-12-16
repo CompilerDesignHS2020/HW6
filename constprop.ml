@@ -234,10 +234,10 @@ let run (cg:Graph.t) (cfg:Cfg.t) : Cfg.t =
         let new_op = 
         begin match op_option with
           | None -> None
-          | Some x -> const_conv_op cb x
+          | Some x -> Some (const_conv_op cb x)
         end
         in
-        Ret(ty, new_op)
+        uid, Ret(ty, new_op)
       | a -> a
 
     end
