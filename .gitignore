@@ -1,5 +1,6 @@
 .vscode
 main.native
+main.byte
 printanalysis.native
 _build
 a.out

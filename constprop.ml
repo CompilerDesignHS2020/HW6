@@ -188,10 +188,11 @@ let analyze (g:Cfg.t) : Graph.t =
 let run (cg:Graph.t) (cfg:Cfg.t) : Cfg.t =
   let open SymConst in
 
-  let const_conv_op (cb:Ll.uid -> Fact.t) (op:Ll.operand) =
+  let const_conv_op ins_uid (cb:Ll.uid -> Fact.t) (op:Ll.operand) =
     begin match op with
       | Ll.Const(c) -> Ll.Const(c)
-      | Ll.Id(id) -> let const_ty_op = UidM.find_opt id (cb id) in 
+      | Ll.Id(id) -> 
+        let const_ty_op = UidM.find_opt id (cb ins_uid) in 
         let const_ty = begin match const_ty_op with
           | Some x -> x
           | None -> failwith (id^" not found")
@@ -209,31 +210,31 @@ let run (cg:Graph.t) (cfg:Cfg.t) : Cfg.t =
   let replace_consts cb cur_ins: Ll.uid * Ll.insn = 
     begin match cur_ins with
       | (uid, Binop(bop,ty,op1,op2)) -> 
-        let new_op1 = const_conv_op cb op1 in
-        let new_op2 = const_conv_op cb op2 in
+        let new_op1 = const_conv_op uid cb op1 in
+        let new_op2 = const_conv_op uid cb op2 in
         (uid, Binop(bop,ty,new_op1,new_op2))
 
       | (uid, Alloca(ty)) -> (uid, Alloca(ty))
-      | (uid, Load(ty,op)) -> (uid, Load(ty, const_conv_op cb op))
+      | (uid, Load(ty,op)) -> (uid, Load(ty, const_conv_op uid cb op))
 
       | (uid, Store(ty,op1, op2)) -> 
-        let new_op1 = const_conv_op cb op1 in
-        let new_op2 = const_conv_op cb op2 in
+        let new_op1 = const_conv_op uid cb op1 in
+        let new_op2 = const_conv_op uid cb op2 in
         (uid, Store(ty, new_op1,new_op2))
 
       | (uid, Icmp(cnd,ty,op1,op2)) -> 
-        let new_op1 = const_conv_op cb op1 in
-        let new_op2 = const_conv_op cb op2 in
+        let new_op1 = const_conv_op uid cb op1 in
+        let new_op2 = const_conv_op uid cb op2 in
         (uid, Icmp(cnd, ty, new_op1,new_op2))
 
       | (uid, Call(ty,lbl_op,arg_list)) ->
-        let convtd_arg_list = List.map (fun (cur_ty, cur_op) -> (cur_ty, (const_conv_op cb cur_op))) arg_list in
-        (uid, Call(ty,lbl_op,convtd_arg_list))
-      | (uid, Bitcast(src_ty,op,dest_ty)) -> (uid, Bitcast(src_ty,const_conv_op cb op,dest_ty))
+        let convtd_arg_list = List.map (fun (cur_ty, cur_op) -> (cur_ty, (const_conv_op uid cb cur_op))) arg_list in
+        (uid, Call(ty,lbl_op, convtd_arg_list))
+      | (uid, Bitcast(src_ty,op,dest_ty)) -> (uid, Bitcast(src_ty,const_conv_op uid cb op,dest_ty))
       | (uid, Gep(ty,op,op_list)) -> 
-        let new_op = const_conv_op cb op in
-        let convtd_op_list = List.map (const_conv_op cb) op_list in
-        (uid, Gep(ty,new_op,convtd_op_list))
+        let new_op = const_conv_op uid cb op in
+        let convtd_op_list = List.map (const_conv_op uid cb) op_list in
+        (uid, Gep(ty,new_op, convtd_op_list))
     end
   in
 
@@ -243,11 +244,11 @@ let run (cg:Graph.t) (cfg:Cfg.t) : Cfg.t =
         let new_op = 
         begin match op_option with
           | None -> None
-          | Some x -> Some (const_conv_op cb x)
+          | Some x -> Some (const_conv_op uid cb x)
         end
         in
         uid, Ret(ty, new_op)
-      | uid, Cbr(op, lbl1, lbl2) -> uid, Cbr(const_conv_op cb op, lbl1, lbl2)
+      | uid, Cbr(op, lbl1, lbl2) -> uid, Cbr(const_conv_op uid cb op, lbl1, lbl2)
       | other -> other
     end
   in

@@ -26,6 +26,10 @@ test: main.native
 main.native: $(SUBMIT) ast.ml astlib.ml backend.ml driver.ml main.ml runtime.c 
 	ocamlbuild -Is $(INCLUDES) $(PKGS) -libs $(LIBS) main.native -use-menhir -yaccflag --explain
 
+.PHONY: main.byte
+main.byte: $(SUBMIT) ast.ml astlib.ml backend.ml driver.ml main.ml runtime.c 
+	ocamlbuild -tag debug -Is $(INCLUDES) $(PKGS) -libs $(LIBS) main.byte -use-menhir -yaccflag --explain
+
 .PHONY: printanalysis.native
 printanalysis.native: $(SUBMIT) ast.ml astlib.ml backend.ml driver.ml main.ml runtime.c
 	ocamlbuild -Is $(INCLUDES) $(PKGS) -libs $(LIBS) printanalysis.native -use-menhir -yaccflag --explain
