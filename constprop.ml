@@ -190,6 +190,10 @@ let run (cg:Graph.t) (cfg:Cfg.t) : Cfg.t =
   let replace_consts cb cur_ins = 
     failwith "NYI"
   in
+
+  let replace_consts_term cb cur_ins = 
+    failwith "NYI"
+  in
   
 
   let cp_block (l:Ll.lbl) (cfg:Cfg.t) : Cfg.t =
@@ -203,7 +207,12 @@ let run (cg:Graph.t) (cfg:Cfg.t) : Cfg.t =
       | h::tl -> [replace_consts cb h] @ (const_propagate_rem_insns tl)
       | [] -> []
     in
-    failwith "Constprop.cp_block unimplemented"
+    
+    let updated_insns = const_propagate_rem_insns b.insns in
+    let updated_term = replace_consts_term b.term in
+
+    {insns=updated_insns; term=updated_term}
+
   in
 
   LblS.fold cp_block (Cfg.nodes cfg) cfg
