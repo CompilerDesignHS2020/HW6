@@ -38,7 +38,7 @@ type fact = SymConst.t UidM.t
  *)
 let insn_flow (u,i:uid * insn) (d:fact) : fact =
   
-  let calc_icmp_res (cond:cnd) (val1: int) (val2: int) : int64 =
+  let calc_icmp_res (cond:cnd) (val1: int64) (val2: int64) : int64 =
     begin match cond with
       | Eq -> Int64.of_int (Bool.to_int (val1 = val2))
       | Ne -> Int64.of_int (Bool.to_int (val1 != val2))
@@ -51,31 +51,32 @@ let insn_flow (u,i:uid * insn) (d:fact) : fact =
 
   let calc_binop_res (binop:Ll.bop) (val1) (val2) =
     begin match binop with
-      | Add -> Int64.of_int (val1 + val2)
-      | Sub -> Int64.of_int (val1 - val2)
-      | Mul -> Int64.of_int (val1 * val2)
-      | Shl -> Int64.of_int (val1 lsl val2)
-      | Lshr -> Int64.of_int (val1 lsr val2)
-      | Ashr -> Int64.of_int (val1 asr val2)
-      | And -> Int64.of_int (val1 land val2)
-      | Or -> Int64.of_int (val1 lor val2)
-      | Xor -> Int64.of_int (val1 lxor val2)
+      | Add -> Int64.add val1 val2
+      | Sub -> Int64.sub val1 val2
+      | Mul -> Int64.mul val1 val2
+      | Shl -> Int64.shift_left val1 (Int64.to_int val2)
+      | Lshr -> Int64.shift_right_logical val1 (Int64.to_int val2)
+      | Ashr -> Int64.shift_right val1 (Int64.to_int val2)
+      | And -> Int64.logand val1 val2
+      | Or -> Int64.logor val1 val2
+      | Xor -> Int64.logxor val1 val2
     end
   in
 
   (* returns is_const, is_defined, const_value *)
   let calculate_op_value op =
     begin match op with
-      | Null -> true, true, 0
-      | Const(i) -> true, true, Int64.to_int i
-      | Id(op1_uid) -> 
-        let op1_const_ty = UidM.find op1_uid d in
-        begin match op1_const_ty with
-          | Const i -> true, true, Int64.to_int i
-          | NonConst -> false, true, 0
-          | UndefConst -> false, false, 0
+      | Null -> true, true, 0L
+      | Const(i) -> true, true, i
+      | Id(op_uid) -> 
+        let op_const_ty = UidM.find_opt op_uid d in
+        begin match op_const_ty with
+          | Some Const i -> true, true, i
+          | Some NonConst -> false, true, 0L
+          | Some UndefConst -> false, false, 0L
+          | None -> failwith ("uid %"^op_uid^" not found")
         end
-      | Gid(_) -> false, true, 0
+      | Gid(_) -> false, true, 0L
     end
   in
 

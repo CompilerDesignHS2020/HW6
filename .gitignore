@@ -1,6 +1,8 @@
 .vscode
 main.native
+printanalysis.native
 _build
 a.out
 output
 *.temp
+temp
