@@ -39,7 +39,7 @@ type fact = SymConst.t UidM.t
 let insn_flow (u,i:uid * insn) (d:fact) : fact =
 
   let print_map_entry = fun uid value -> uid^": "^(SymConst.to_string value) in
-  print_endline ("At uid :%"^u^" "^(UidM.to_string print_map_entry d));
+  (* print_endline ("At uid :%"^u^" "^(UidM.to_string print_map_entry d)); *)
   
   let calc_icmp_res (cond:cnd) (val1: int64) (val2: int64) : int64 =
     begin match cond with
@@ -77,7 +77,7 @@ let insn_flow (u,i:uid * insn) (d:fact) : fact =
           | Some Const i -> true, true, i
           | Some NonConst -> false, true, 0L
           | Some UndefConst -> false, false, 0L
-          | None -> failwith ("uid %"^op_uid^" not found")
+          | None -> false, false, 0L (* failwith ("uid %"^op_uid^" not found") *)
         end
       | Gid(_) -> false, true, 0L
     end
