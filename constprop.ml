@@ -191,8 +191,19 @@ let run (cg:Graph.t) (cfg:Cfg.t) : Cfg.t =
     failwith "NYI"
   in
 
-  let replace_consts_term cb cur_ins: Ll.uid * Ll.terminator = 
-    failwith "NYI"
+  let replace_consts_term cb (cur_term: Ll.uid * Ll.terminator): Ll.uid * Ll.terminator = 
+    begin match cur_term with
+      | uid, Ret(ty, op_option) ->
+        let new_op = 
+        begin match op_option with
+          | None -> None
+          | Some x -> const_conv_op cb x
+        end
+        in
+        Ret(ty, new_op)
+      | a -> a
+
+    end
   in
   
 
@@ -212,7 +223,8 @@ let run (cg:Graph.t) (cfg:Cfg.t) : Cfg.t =
     let updated_term = replace_consts_term cb b.term in
 
     let new_block = {insns=updated_insns; term=updated_term} in
-    failwith "gittre"
+    
+
 
   in
 
