@@ -39,7 +39,7 @@ type fact = SymConst.t UidM.t
 let insn_flow (u,i:uid * insn) (d:fact) : fact =
 
   let print_map_entry = fun uid value -> uid^": "^(SymConst.to_string value) in
-  print_endline ("At uid :%"^u^" "^(UidM.to_string print_map_entry d))
+  print_endline ("At uid :%"^u^" "^(UidM.to_string print_map_entry d));
   
   let calc_icmp_res (cond:cnd) (val1: int64) (val2: int64) : int64 =
     begin match cond with
@@ -155,9 +155,10 @@ module Fact =
         | h::tl -> UidM.merge merge_const_types h (join_rem_facts tl)
         | [] -> UidM.empty
       end
-    in
+      in
+      join_rem_facts ds
+    
 
-    join_rem_facts ds
   end
 
 (* instantiate the general framework ---------------------------------------- *)
