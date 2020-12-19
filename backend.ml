@@ -670,7 +670,12 @@ let greedy_layout (f:Ll.fdecl) (live:liveness) : layout =
   in
 
   let inc_by_uid uid count_list : (Ll.uid * int) list = 
-    failwith "NYI"
+    let old_list, old_value =
+      match List.assoc_opt uid count_list with
+      | None -> count_list, 0
+      | Some count -> List.remove_assoc uid count_list, count
+    in
+    [(uid, old_value+1)]@old_list
   in
 
   let rec count_uid_list =
@@ -738,9 +743,12 @@ let greedy_layout (f:Ll.fdecl) (live:liveness) : layout =
     fold_fdecl
     (fun count_list (x, _) -> count_list)
     (fun count_list l -> count_list)
-    (fun count_list (x, i) -> update_count_list_ins i count_list
-    (fun count_list t -> -> update_count_list_term t count_list)
-    [] f in
+    (fun count_list (x, i) -> update_count_list_ins i count_list)
+    (fun count_list t -> update_count_list_term t count_list)
+    [] f 
+  in
+
+  let sorted_count_list = List.sort (fun first second -> if first>second then -1 else +1) count_list in
 
   let lo =
     fold_fdecl
