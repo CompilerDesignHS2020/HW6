@@ -126,10 +126,10 @@ module Fact =
         | None, None -> None
         | None, Some x -> Some x
         | Some x, None -> Some x
-        | Some SymPtr.UndefAlias, _ -> Some SymPtr.UndefAlias
-        | _, Some SymPtr.UndefAlias -> Some SymPtr.UndefAlias
         | Some SymPtr.MayAlias, _ -> Some SymPtr.MayAlias
         | _, Some SymPtr.MayAlias -> Some SymPtr.MayAlias
+        | Some SymPtr.UndefAlias, Some x -> Some x
+        | Some x, Some SymPtr.UndefAlias -> Some x
         | Some SymPtr.Unique, Some SymPtr.Unique -> Some SymPtr.Unique
       end
 
