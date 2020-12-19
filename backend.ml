@@ -690,9 +690,12 @@ let greedy_layout (f:Ll.fdecl) (live:liveness) : layout =
     fold_fdecl
     (fun count_list (x, _) -> count_list)
     (fun count_list l -> count_list)
-    (fun count_list (x, i) -> update_count_list_ins i count_list
-    (fun count_list t -> -> update_count_list_term t count_list)
-    [] f in
+    (fun count_list (x, i) -> update_count_list_ins i count_list)
+    (fun count_list t -> update_count_list_term t count_list)
+    [] f 
+  in
+
+  let sorted_count_list = List.sort (fun first second -> if first>second then -1 else +1) count_list in
 
   let lo =
     fold_fdecl
