@@ -670,7 +670,12 @@ let greedy_layout (f:Ll.fdecl) (live:liveness) : layout =
   in
 
   let inc_by_uid uid count_list : (Ll.uid * int) list = 
-    failwith "NYI"
+    let old_list, old_value =
+      match List.assoc_opt uid count_list with
+      | None -> count_list, 0
+      | Some count -> List.remove_assoc uid count_list, count
+    in
+    [(uid, old_value+1)]@old_list
   in
 
   let update_count_list_ins insn count_list = 
