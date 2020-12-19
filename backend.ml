@@ -678,9 +678,62 @@ let greedy_layout (f:Ll.fdecl) (live:liveness) : layout =
     [(uid, old_value+1)]@old_list
   in
 
-  let update_count_list_ins insn count_list =
+  let rec count_uid_list =
+    begin match 
 
   in
+
+  let update_count_list_ins (insn:Ll.insn) count_list = 
+    begin match insn with
+    | Binop(bop,_,op1,op2) -> 
+      let temp_count_list = begin match op1 with
+        | Id(id) -> inc_by_uid id count_list
+        | _ -> count_list
+      end in
+      begin match op2 with
+        | Id(id) -> inc_by_uid id temp_count_list
+        | _ -> temp_count_list
+      end 
+    | Load(ty,op) -> 
+      begin match op with
+        | Id(id) -> inc_by_uid id count_list
+        | _ -> count_list
+      end 
+    | Store(ty,op1, op2) -> 
+      let temp_count_list = begin match op2 with
+        | Id(id) -> inc_by_uid id count_list
+        | _ -> count_list
+      end in
+      begin match op2 with
+        | Id(id) -> inc_by_uid id temp_count_list
+        | _ -> temp_count_list
+      end 
+    | Icmp(cnd,ty,op1,op2) -> 
+      let temp_count_list = begin match op2 with
+        | Id(id) -> inc_by_uid id count_list
+        | _ -> count_list
+      end in
+      begin match op2 with
+        | Id(id) -> inc_by_uid id temp_count_list
+        | _ -> temp_count_list
+      end 
+    | Call(ty,lbl_op,arg_list) ->
+      begin match lbl_op with
+        | Id(id) -> inc_by_uid id count_list
+        | _ -> count_list
+      end
+    | Bitcast(src_ty,op,dest_ty) -> 
+      begin match op with
+        | Id(id) -> inc_by_uid id count_list
+        | _ -> count_list
+      end
+    | Gep(ty,op,op_list) -> 
+      begin match op with
+        | Id(id) -> inc_by_uid id count_list
+        | _ -> count_list
+      end
+    | _ -> count_list
+  end in
 
   let update_count_list_term term count_list = 
 
