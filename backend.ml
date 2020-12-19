@@ -678,7 +678,7 @@ let greedy_layout (f:Ll.fdecl) (live:liveness) : layout =
     [(uid, old_value+1)]@old_list
   in
 
-  let update_count_list_ins insn count_list = 
+  let update_count_list_ins insn count_list =
 
   in
 
