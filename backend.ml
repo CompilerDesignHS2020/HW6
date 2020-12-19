@@ -669,6 +669,22 @@ let greedy_layout (f:Ll.fdecl) (live:liveness) : layout =
     Platform.verb @@ Printf.sprintf "allocated: %s <- %s\n" (Alloc.str_loc loc) uid; loc
   in
 
+  let update_count_list_ins insn count_list = 
+
+  in
+
+  let update_count_list_term term count_list = 
+
+  in
+
+  let count_list =
+    fold_fdecl
+    (fun count_list (x, _) -> count_list)
+    (fun count_list l -> count_list)
+    (fun count_list (x, i) -> update_count_list_ins i count_list
+    (fun count_list t -> -> update_count_list_term t count_list)
+    [] f in
+
   let lo =
     fold_fdecl
       (fun lo (x, _) -> (x, alloc_arg())::lo)

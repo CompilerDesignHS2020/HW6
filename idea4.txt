@@ -1,0 +1,4 @@
+	
+	1. loop through all insns & terminators, count uses
+	2. sort use count list
+	3. loop through count_list, first assign regs, rest stack slot, if no place for reg combi
