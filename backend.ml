@@ -680,8 +680,8 @@ let greedy_layout (f:Ll.fdecl) (live:liveness) : layout =
 
   let update_count_list_ins (insn:Ll.insn) count_list = 
     begin match insn with
-    | Binop(bop,ty,op1,op2) -> 
-      let temp_count_list = begin match op2 with
+    | Binop(bop,_,op1,op2) -> 
+      let temp_count_list = begin match op1 with
         | Id(id) -> inc_by_uid id count_list
         | _ -> count_list
       end in
