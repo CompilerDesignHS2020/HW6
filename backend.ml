@@ -678,8 +678,14 @@ let greedy_layout (f:Ll.fdecl) (live:liveness) : layout =
     [(uid, old_value+1)]@old_list
   in
 
-  let rec count_uid_list =
-    begin match 
+  let rec count_uid_list count_list uid_list =
+    match uid_list with
+      | h::tl -> 
+        begin match h with 
+          | Id uid -> count_uid_list (inc_by_uid uid count_list) tl
+          | _ -> count_uid_list count_list tl
+        end
+      | [] -> count_list
 
   in
 
@@ -700,7 +706,7 @@ let greedy_layout (f:Ll.fdecl) (live:liveness) : layout =
         | _ -> count_list
       end 
     | Store(ty,op1, op2) -> 
-      let temp_count_list = begin match op2 with
+      let temp_count_list = begin match op1 with
         | Id(id) -> inc_by_uid id count_list
         | _ -> count_list
       end in
@@ -709,7 +715,7 @@ let greedy_layout (f:Ll.fdecl) (live:liveness) : layout =
         | _ -> temp_count_list
       end 
     | Icmp(cnd,ty,op1,op2) -> 
-      let temp_count_list = begin match op2 with
+      let temp_count_list = begin match op1 with
         | Id(id) -> inc_by_uid id count_list
         | _ -> count_list
       end in
@@ -718,25 +724,25 @@ let greedy_layout (f:Ll.fdecl) (live:liveness) : layout =
         | _ -> temp_count_list
       end 
     | Call(ty,lbl_op,arg_list) ->
-      begin match lbl_op with
-        | Id(id) -> inc_by_uid id count_list
-        | _ -> count_list
-      end
+      count_uid_list count_list (List.map (fun (x,y) -> y) arg_list)
     | Bitcast(src_ty,op,dest_ty) -> 
       begin match op with
         | Id(id) -> inc_by_uid id count_list
         | _ -> count_list
       end
     | Gep(ty,op,op_list) -> 
+      let temp_count_list = 
       begin match op with
         | Id(id) -> inc_by_uid id count_list
         | _ -> count_list
       end
-    | _ -> count_list
+      in
+      count_uid_list temp_count_list op_list
+    | Alloca(t) -> count_list
   end in
 
   let update_count_list_term term count_list = 
-
+    failwith "NYI"
   in
 
   let count_list =
@@ -749,6 +755,17 @@ let greedy_layout (f:Ll.fdecl) (live:liveness) : layout =
   in
 
   let sorted_count_list = List.sort (fun first second -> if first>second then -1 else +1) count_list in
+
+  let lbl_locs_and_non_uid_insns =
+    fold_fdecl
+    (fun lbl_list (x, _) -> lbl_list)
+    (fun lbl_list l -> (l, Alloc.LLbl (Platform.mangle l))::lbl_list)
+    (fun lbl_list (x, i) ->         
+    if insn_assigns i 
+      then lbl_list
+      else (x, Alloc.LVoid)::lbl_list)
+    (fun lbl_list _ -> lbl_list)
+    [] f in
 
   let lo =
     fold_fdecl
