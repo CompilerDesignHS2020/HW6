@@ -669,6 +669,10 @@ let greedy_layout (f:Ll.fdecl) (live:liveness) : layout =
     Platform.verb @@ Printf.sprintf "allocated: %s <- %s\n" (Alloc.str_loc loc) uid; loc
   in
 
+  let inc_by_uid uid count_list : (Ll.uid * int) list = 
+    failwith "NYI"
+  in
+
   let update_count_list_ins insn count_list = 
 
   in
