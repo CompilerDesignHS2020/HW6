@@ -832,7 +832,7 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
     (fun count_list (x, _) -> count_list)
     (fun count_list l -> count_list)
     (fun count_list (x, i) -> update_count_list_ins i count_list)
-    (fun count_list t -> update_count_list_term t count_list)
+    (fun count_list (x, t)-> update_count_list_term t count_list)
     [] f 
   in
 
