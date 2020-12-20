@@ -689,6 +689,7 @@ let greedy_layout (f:Ll.fdecl) (live:liveness) : layout =
 
   in
 
+  (* counts the arguments in insns *)
   let update_count_list_ins (insn:Ll.insn) count_list = 
     begin match insn with
     | Binop(bop,_,op1,op2) -> 
@@ -741,10 +742,12 @@ let greedy_layout (f:Ll.fdecl) (live:liveness) : layout =
     | Alloca(t) -> count_list
   end in
 
+  (* counts the arguments in terminators *)
   let update_count_list_term term count_list = 
     failwith "NYI"
   in
 
+  (* a list of (uid, count) tuples, counting how many times an uid is used as an argument *)
   let count_list =
     fold_fdecl
     (fun count_list (x, _) -> count_list)
@@ -754,8 +757,10 @@ let greedy_layout (f:Ll.fdecl) (live:liveness) : layout =
     [] f 
   in
 
+  (* Sorts count_list with most used uid first *)
   let sorted_count_list = List.sort (fun first second -> if first>second then -1 else +1) count_list in
 
+  (* Add locations of labels and void locations for store/call_void to list *)
   let lbl_locs_and_non_uid_insns =
     fold_fdecl
     (fun lbl_list (x, _) -> lbl_list)
