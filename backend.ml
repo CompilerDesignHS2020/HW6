@@ -783,13 +783,9 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
         UidSet.fold (fun y -> LocSet.add (List.assoc y lo)) (live.live_in uid) LocSet.empty
       in
       let available_locs = LocSet.diff pal used_locs in
-      print_endline ("before use: %"^uid);
-      let gitter = LocSet.choose available_locs in
-      print_endline "after use";
-      gitter
-
+      LocSet.choose available_locs 
     with
-    | Not_found -> print_endline ("spilling: "^uid); spill ()
+    | Not_found -> spill ()
     in
     Platform.verb @@ Printf.sprintf "allocated: %s <- %s\n" (Alloc.str_loc loc) uid; loc
   in
@@ -851,13 +847,24 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
     [] f 
   in
 
+  let count_list_no_args = 
+    List.fold_left (
+      fun partial_updated_list (uid, count)-> 
+        match List.find_opt (fun x -> x=uid) f.f_param with
+          | Some x -> partial_updated_list
+          | None -> (uid, count)::partial_updated_list
+      ) [] count_list
+  in
+
   (* Sorts count_list with most used uid first *)
-  let sorted_count_list = List.sort (fun first second -> if first>second then -1 else +1) count_list in
+  let sorted_count_list = List.sort (fun first second -> if first>second then -1 else +1) count_list_no_args in
+
+  
 
   (* Add locations of labels and void locations for store/call_void to list *)
   let label_locations_and_non_uniform_identifier_instructions =
     fold_fdecl
-    (fun lbl_list _ -> lbl_list)
+    (fun lo (x, _) -> (x, alloc_arg())::lo)
     (fun lbl_list l -> (l, Alloc.LLbl (Platform.mangle l))::lbl_list)
     (fun lbl_list (x, i) ->         
     if insn_assigns i 
@@ -868,17 +875,12 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
 
   let lo_used_only =
     (List.fold_left
-      (fun partial_lo (uid, count) -> (uid, allocate partial_lo uid)::partial_lo) [] sorted_count_list)
-      @label_locations_and_non_uniform_identifier_instructions
+      (fun partial_lo (uid, count) -> (uid, allocate partial_lo uid)::partial_lo) label_locations_and_non_uniform_identifier_instructions sorted_count_list)
   in
 
   let unused_args_and_unused_result_uids =
     fold_fdecl
-    (fun partial_unused_list (arg_uid, _) -> 
-      match List.assoc_opt arg_uid count_list with
-        | Some x -> partial_unused_list
-        | None -> (arg_uid, allocate partial_unused_list arg_uid)::partial_unused_list
-      )
+    (fun partial_unused_list (arg_uid, _) -> partial_unused_list)
     (fun partial_unused_list l -> partial_unused_list)
     (fun partial_unused_list (ins_uid, i) ->         
     if insn_assigns i 
@@ -908,7 +910,7 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
       | [] -> ()
   in
 
-  print_lo lo;
+  (* print_lo lo; *)
 
   { uid_loc = 
   (fun x -> 
