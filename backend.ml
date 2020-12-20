@@ -795,7 +795,6 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
           | _ -> count_uid_list count_list tl
         end
       | [] -> count_list
-
   in
 
   (* counts the arguments in insns *)
