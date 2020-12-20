@@ -804,7 +804,7 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
     | Load(_,op) -> count_uid_list count_list [op]
     | Store(_,op1, op2) -> count_uid_list count_list ([op1]@[op2])
     | Icmp(_,_,op1,op2) -> count_uid_list count_list ([op1]@[op2])
-    | Call(_,lbl_op,arg_list) -> count_uid_list count_list (List.map (fun (x,y) -> y) arg_list)
+    | Call(_,lbl_op,arg_list) -> count_uid_list count_list ([lbl_op]@(List.map (fun (x,y) -> y) arg_list))
     | Bitcast(_,op,_) -> count_uid_list count_list ([op])
     | Gep(_,op,op_list) -> count_uid_list count_list ([op]@op_list)
     | Alloca(_) -> count_list
@@ -859,7 +859,6 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
       (fun partial_lo (uid, count) -> (uid, allocate partial_lo uid)::partial_lo) [] sorted_count_list)
       @label_locations_and_non_uniform_identifier_instructions_and_unused_arguments
   in
-
 
   { uid_loc = (fun x -> List.assoc x lo)
   ; spill_bytes = 8 * !n_spill
