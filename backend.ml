@@ -801,53 +801,14 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   (* counts the arguments in insns *)
   let update_count_list_ins (insn:Ll.insn) count_list = 
     begin match insn with
-    | Binop(bop,_,op1,op2) -> 
-      let temp_count_list = begin match op1 with
-        | Id(id) -> inc_by_uid id count_list
-        | _ -> count_list
-      end in
-      begin match op2 with
-        | Id(id) -> inc_by_uid id temp_count_list
-        | _ -> temp_count_list
-      end 
-    | Load(ty,op) -> 
-      begin match op with
-        | Id(id) -> inc_by_uid id count_list
-        | _ -> count_list
-      end 
-    | Store(ty,op1, op2) -> 
-      let temp_count_list = begin match op1 with
-        | Id(id) -> inc_by_uid id count_list
-        | _ -> count_list
-      end in
-      begin match op2 with
-        | Id(id) -> inc_by_uid id temp_count_list
-        | _ -> temp_count_list
-      end 
-    | Icmp(cnd,ty,op1,op2) -> 
-      let temp_count_list = begin match op1 with
-        | Id(id) -> inc_by_uid id count_list
-        | _ -> count_list
-      end in
-      begin match op2 with
-        | Id(id) -> inc_by_uid id temp_count_list
-        | _ -> temp_count_list
-      end 
+    | Binop(bop,_,op1,op2) -> count_uid_list count_list ([op1]@[op2]) 
+    | Load(ty,op) -> count_uid_list count_list [op]
+    | Store(ty,op1, op2) -> count_uid_list count_list ([op1]@[op2])
+    | Icmp(cnd,ty,op1,op2) -> count_uid_list count_list ([op1]@[op2])
     | Call(ty,lbl_op,arg_list) ->
       count_uid_list count_list (List.map (fun (x,y) -> y) arg_list)
-    | Bitcast(src_ty,op,dest_ty) -> 
-      begin match op with
-        | Id(id) -> inc_by_uid id count_list
-        | _ -> count_list
-      end
-    | Gep(ty,op,op_list) -> 
-      let temp_count_list = 
-      begin match op with
-        | Id(id) -> inc_by_uid id count_list
-        | _ -> count_list
-      end
-      in
-      count_uid_list temp_count_list op_list
+    | Bitcast(src_ty,op,dest_ty) -> count_uid_list count_list ([op])
+    | Gep(ty,op,op_list) -> count_uid_list count_list ([op]@op_list)
     | Alloca(t) -> count_list
   end in
 
