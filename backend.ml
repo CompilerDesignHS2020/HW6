@@ -800,15 +800,14 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   (* counts the arguments in insns *)
   let update_count_list_ins (insn:Ll.insn) count_list = 
     begin match insn with
-    | Binop(bop,_,op1,op2) -> count_uid_list count_list ([op1]@[op2]) 
-    | Load(ty,op) -> count_uid_list count_list [op]
-    | Store(ty,op1, op2) -> count_uid_list count_list ([op1]@[op2])
-    | Icmp(cnd,ty,op1,op2) -> count_uid_list count_list ([op1]@[op2])
-    | Call(ty,lbl_op,arg_list) ->
-      count_uid_list count_list (List.map (fun (x,y) -> y) arg_list)
-    | Bitcast(src_ty,op,dest_ty) -> count_uid_list count_list ([op])
-    | Gep(ty,op,op_list) -> count_uid_list count_list ([op]@op_list)
-    | Alloca(t) -> count_list
+    | Binop(_,_,op1,op2) -> count_uid_list count_list ([op1]@[op2]) 
+    | Load(_,op) -> count_uid_list count_list [op]
+    | Store(_,op1, op2) -> count_uid_list count_list ([op1]@[op2])
+    | Icmp(_,_,op1,op2) -> count_uid_list count_list ([op1]@[op2])
+    | Call(_,lbl_op,arg_list) -> count_uid_list count_list (List.map (fun (x,y) -> y) arg_list)
+    | Bitcast(_,op,_) -> count_uid_list count_list ([op])
+    | Gep(_,op,op_list) -> count_uid_list count_list ([op]@op_list)
+    | Alloca(_) -> count_list
     end 
   in
 
