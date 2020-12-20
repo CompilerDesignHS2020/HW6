@@ -809,7 +809,8 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
     | Bitcast(src_ty,op,dest_ty) -> count_uid_list count_list ([op])
     | Gep(ty,op,op_list) -> count_uid_list count_list ([op]@op_list)
     | Alloca(t) -> count_list
-  end in
+    end 
+  in
 
   (* counts the arguments in terminators *)
   let update_count_list_term term count_list = 
