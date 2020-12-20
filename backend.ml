@@ -54,11 +54,23 @@ module UidSet = Datastructures.UidS
 
 type fbody = (insn * LocSet.t) list
 
-let map_operand f g : Ll.operand -> operand = function
+let map_operand f g : Ll.operand -> operand = fun op ->
+
+try
+  match op with
   | Null -> Null
   | Const i -> Const i
   | Gid x -> Gid (g x)
   | Id u -> Loc (f u)
+with
+| Not_found -> 
+  print_endline "Not Found: ";
+  match op with
+  | Null -> failwith "Null";
+  | Const i -> failwith ("Const"^(Int64.to_string i));
+  | Gid x -> failwith ("GID: "^x);
+  | Id u -> failwith ("UID: "^u)
+
 
 let map_insn f g : uid * Ll.insn -> insn = 
   let mo = map_operand f g in function
@@ -839,13 +851,9 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   let sorted_count_list = List.sort (fun first second -> if first>second then -1 else +1) count_list in
 
   (* Add locations of labels and void locations for store/call_void to list *)
-  let label_locations_and_non_uniform_identifier_instructions_and_unused_arguments =
+  let label_locations_and_non_uniform_identifier_instructions =
     fold_fdecl
-    (fun lbl_list (arg_uid, _) -> 
-      match List.assoc_opt arg_uid count_list with
-        | Some x -> lbl_list
-        | None -> (arg_uid, spill ())::lbl_list
-      )
+    (fun lbl_list _ -> lbl_list)
     (fun lbl_list l -> (l, Alloc.LLbl (Platform.mangle l))::lbl_list)
     (fun lbl_list (x, i) ->         
     if insn_assigns i 
@@ -854,13 +862,55 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
     (fun lbl_list _ -> lbl_list)
     [] f in
 
-  let lo =
+  let lo_used_only =
     (List.fold_left
       (fun partial_lo (uid, count) -> (uid, allocate partial_lo uid)::partial_lo) [] sorted_count_list)
-      @label_locations_and_non_uniform_identifier_instructions_and_unused_arguments
+      @label_locations_and_non_uniform_identifier_instructions
   in
 
-  { uid_loc = (fun x -> List.assoc x lo)
+  let unused_args_and_unused_result_uids =
+    fold_fdecl
+    (fun partial_unused_list (arg_uid, _) -> 
+      match List.assoc_opt arg_uid count_list with
+        | Some x -> partial_unused_list
+        | None -> (arg_uid, allocate partial_unused_list arg_uid)::partial_unused_list
+      )
+    (fun partial_unused_list l -> partial_unused_list)
+    (fun partial_unused_list (ins_uid, i) ->         
+    if insn_assigns i 
+      then
+        match List.assoc_opt ins_uid count_list with
+          | Some x -> partial_unused_list
+          | None -> (ins_uid, allocate partial_unused_list ins_uid)::partial_unused_list
+      else partial_unused_list)
+    (fun partial_unused_list _ -> partial_unused_list)
+    [] f in
+
+  let lo =
+    lo_used_only@unused_args_and_unused_result_uids
+  in
+
+  let loc_to_string (location:Alloc.loc) =
+    match location with
+    | LVoid -> "Void"
+    | LReg(reg) -> "Reg: "^string_of_reg reg
+    | LStk(number) -> "Stack: "^string_of_int number
+    | LLbl(lbl) -> "Label: "^lbl
+  in
+
+  let rec print_lo lo =
+    match lo with
+      | (uid, location)::tl -> print_endline ("%"^uid^" is at: "^(loc_to_string location));print_lo tl
+      | [] -> ()
+  in
+
+  (* print_lo lo; *)
+
+  { uid_loc = 
+  (fun x -> 
+    match List.assoc_opt x lo with
+      | Some x -> x
+      | None -> failwith ("Not Found: %"^x))
   ; spill_bytes = 8 * !n_spill
   }
 
