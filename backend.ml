@@ -840,7 +840,7 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   let sorted_count_list = List.sort (fun first second -> if first>second then -1 else +1) count_list in
 
   (* Add locations of labels and void locations for store/call_void to list *)
-  let lbl_locs_and_non_uid_insns =
+  let lbl_locs_and_non_uniform_identifier_insns_and_unused_args =
     fold_fdecl
     (fun lbl_list (x, _) -> lbl_list)
     (fun lbl_list l -> (l, Alloc.LLbl (Platform.mangle l))::lbl_list)
@@ -854,7 +854,7 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   let lo =
     (List.fold_left
       (fun partial_lo (uid, count) -> (uid, allocate partial_lo uid)::partial_lo) [] sorted_count_list)
-      @lbl_locs_and_non_uid_insns
+      @lbl_locs_and_non_uniform_identifier_insns_and_unused_args
   in
 
 
