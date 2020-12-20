@@ -857,6 +857,7 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   in
 
   (* a list of (uid, count) tuples, counting how many times an uid is used as an argument *)
+  (* contains entries for results of insns (non store, non call void) and function arguments *)
   let count_list =
     fold_fdecl
     (fun count_list (x, _) -> count_list)
