@@ -844,15 +844,12 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
     [] f in
 
   let lo =
-    fold_fdecl
-      (fun lo (x, _) -> (x, alloc_arg())::lo)
-      (fun lo l -> (l, Alloc.LLbl (Platform.mangle l))::lo)
-      (fun lo (x, i) ->
-        if insn_assigns i 
-        then (x, allocate lo x)::lo
-        else (x, Alloc.LVoid)::lo)
-      (fun lo _ -> lo)
-      [] f in
+    (List.fold_left
+      (fun partial_lo (uid, count) -> (uid ,allocate partial_lo uid)::partial_lo) [] sorted_count_list)
+      @lbl_locs_and_non_uid_insns
+  in
+
+
   { uid_loc = (fun x -> List.assoc x lo)
   ; spill_bytes = 8 * !n_spill
   }
