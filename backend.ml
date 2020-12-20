@@ -840,7 +840,7 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   let sorted_count_list = List.sort (fun first second -> if first>second then -1 else +1) count_list in
 
   (* Add locations of labels and void locations for store/call_void to list *)
-  let lbl_locs_and_non_uniform_identifier_insns_and_unused_args =
+  let label_locations_and_non_uniform_identifier_instructions_and_unused_arguments =
     fold_fdecl
     (fun lbl_list (arg_uid, _) -> 
       match List.assoc_opt arg_uid count_list with
