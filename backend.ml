@@ -783,9 +783,13 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
         UidSet.fold (fun y -> LocSet.add (List.assoc y lo)) (live.live_in uid) LocSet.empty
       in
       let available_locs = LocSet.diff pal used_locs in
-      LocSet.choose available_locs
+      print_endline ("before use: %"^uid);
+      let gitter = LocSet.choose available_locs in
+      print_endline "after use";
+      gitter
+
     with
-    | Not_found -> spill ()
+    | Not_found -> print_endline ("spilling: "^uid); spill ()
     in
     Platform.verb @@ Printf.sprintf "allocated: %s <- %s\n" (Alloc.str_loc loc) uid; loc
   in
@@ -904,7 +908,7 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
       | [] -> ()
   in
 
-  (* print_lo lo; *)
+  print_lo lo;
 
   { uid_loc = 
   (fun x -> 
