@@ -841,7 +841,11 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   (* Add locations of labels and void locations for store/call_void to list *)
   let label_locations_and_non_uniform_identifier_instructions_and_unused_arguments =
     fold_fdecl
-    (fun lbl_list (x, _) -> lbl_list)
+    (fun lbl_list (arg_uid, _) -> 
+      match List.assoc_opt arg_uid count_list with
+        | Some x -> lbl_list
+        | None -> (arg_uid, spill ())::lbl_list
+      )
     (fun lbl_list l -> (l, Alloc.LLbl (Platform.mangle l))::lbl_list)
     (fun lbl_list (x, i) ->         
     if insn_assigns i 
@@ -853,7 +857,7 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   let lo =
     (List.fold_left
       (fun partial_lo (uid, count) -> (uid, allocate partial_lo uid)::partial_lo) [] sorted_count_list)
-      @lbl_locs_and_non_uniform_identifier_insns_and_unused_args
+      @label_locations_and_non_uniform_identifier_instructions_and_unused_arguments
   in
 
 
