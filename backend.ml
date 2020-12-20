@@ -813,8 +813,16 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   in
 
   (* counts the arguments in terminators *)
-  let update_count_list_term term count_list = 
-    failwith "NYI"
+  let update_count_list_term (term:Ll.terminator) count_list = 
+    begin match term with
+      | Ret(_, operand_op) ->
+        begin match operand_op with
+          | Some op -> count_uid_list count_list [op]
+          | None -> count_list
+        end
+      | Br _ -> count_list
+      | Cbr (op, _, _)-> count_uid_list count_list [op]
+    end
   in
 
   (* a list of (uid, count) tuples, counting how many times an uid is used as an argument *)
@@ -845,7 +853,7 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
 
   let lo =
     (List.fold_left
-      (fun partial_lo (uid, count) -> (uid ,allocate partial_lo uid)::partial_lo) [] sorted_count_list)
+      (fun partial_lo (uid, count) -> (uid, allocate partial_lo uid)::partial_lo) [] sorted_count_list)
       @lbl_locs_and_non_uid_insns
   in
 
