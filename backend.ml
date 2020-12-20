@@ -858,7 +858,7 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   let lo =
     (List.fold_left
       (fun partial_lo (uid, count) -> (uid, allocate partial_lo uid)::partial_lo) [] sorted_count_list)
-      @lbl_locs_and_non_uniform_identifier_insns_and_unused_args
+      @label_locations_and_non_uniform_identifier_instructions_and_unused_arguments
   in
 
 
